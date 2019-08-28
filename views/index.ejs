@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='//luoxd1.oss-cn-beijing.aliyuncs.com/mock/bootstrap.min.css' />
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <div id="app">
+      <%- include('header'); %>
+      <div class="content-body">
+        <div class="mock-add">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="请输入URL" aria-label="Recipient's username" aria-describedby="basic-addon2" v-model="mockUrl">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary ajax-method" type="button" :class="mockMethod == 'get' ? 'active' : ''" @click="mockMethod = 'get'">GET</button>
+              <button class="btn btn-outline-secondary ajax-method" type="button" :class="mockMethod == 'post' ? 'active' : ''" @click="mockMethod = 'post'">POST</button>
+            </div>
+          </div>
+          <div class="mcck-response input-group mb-3">
+            <textarea type="text" v-model="mockResponse" class="form-control" rows="10" placeholder="请输入响应数据" aria-label="Recipient's username" aria-describedby="basic-addon2"></textarea>
+          </div>
+          <div class="mcck-response input-group mb-3">
+              <button class="btn btn-outline-secondary" type="button" @click="">更多选项</button>
+            </div>
+          <div class="mcck-response input-group mb-3"style="text-align: right">
+            <button class="btn btn-outline-secondary" type="button" @click="checkUrl" >提交</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="//luoxd1.oss-cn-beijing.aliyuncs.com/mock/jquery.min.js"></script>
+    <script src="//luoxd1.oss-cn-beijing.aliyuncs.com/mock/vue.js"></script>
+    <script>
+      
+      var app = new Vue({
+        el: '#app',
+        data: {
+          mockUrl: '', // 要mock的url
+          mockMethod: 'get', // 请求类型
+          mockResponse: '', // 响应内容
+          urlObj: parseUrl(window.location.href), // url参数
+        },
+        created: function () {
+          if (this.urlObj.query.mockId) {
+            this.getOnlyMock()
+          }
+          $.ajax({
+            url: '//maliaos.com/interface/mock/queryAllActivityTimesList',
+            type: 'GET',
+            success: (res) => {
+              
+            }
+          })
+        },
+        methods: {
+          /**
+           * 校验url是否正确和重复
+          */
+          checkUrl: function () {
+            $.ajax({
+              url: '/interface/checkUrl',
+              type: 'GET',
+              data: {
+                mock: this.mockUrl
+              },
+              success: (res) => {
+                if (res.errorCode == 0) {
+                  this.addUrl()
+                } else if (res.errorCode == -2) {
+                  var r = confirm(res.errorMessage)
+                  if (r) {
+                    this.addUrl()
+                  }
+                } else {
+                  alert(res.errorMessage)
+                }
+              }
+            })
+          },
+          /**
+           * 查询单个mock
+           */
+          getOnlyMock: function () {
+            $.ajax({
+              url: '/interface/getOnlyMock',
+              type: 'GET',
+              data: {
+                mockId: this.urlObj.query.mockId,
+              },
+              success: (res) => {
+                if (res.errorCode == 0) {
+                  this.mockUrl = res.data.mock_url
+                  this.mockResponse = res.data.mock_response
+                  this.mockMethod = res.data.mock_method
+                }
+              }
+            })
+          },
+          /**
+           *  增加mock 
+           */
+          addUrl: function () {
+            const params = {
+              mockUrl: this.mockUrl,
+              mockMethod: this.mockMethod,
+              responseData: {}
+            }
+            let isSave = true
+            let mockResponse = this.mockResponse
+            try {
+              if (!/^{/.test(mockResponse)) {
+                throw '请填写正确的JSON'
+              }
+              if (JSON.parse(mockResponse)) {
+                params.responseData = mockResponse
+              } else throw '请填写正确的JSON'
+            } catch (err) {
+              isSave = false
+              alert('请填写正确的JSON')
+            }
+            if (!isSave) {
+              return
+            }
+            $.ajax({
+              url: '/interface/addUrl',
+              type: 'POST',
+              data: params,
+              success: function (res) {
+                if (res.errorCode == 0) {
+                  alert('添加成功')
+                  window.location.href = '/list'
+                }
+              }
+            })
+          },
+        },
+      })
+      function parseUrl(url) {
+        var a = document.createElement('a');
+        a.href = url;
+        return {
+          protocol: a.protocol.replace(':', ''),
+          hostname: a.hostname,
+          port: a.port,
+          path: a.pathname,
+          query: (() => {
+            var query = a.search.substr(1);
+            var queryArr = query.split('&');
+            var queryObj = {};
+            queryArr.forEach((item, index) => {
+              var item = item.split('=');
+              var key = item[0];
+              queryObj[key] = item[1];
+            })
+            return queryObj;
+          })(),
+          params: (() => {
+            var params = a.hash.substr(1);
+            var paramsArr = params.split('#');
+            return paramsArr;
+          })(),
+        }
+      }
+    </script>
+  </body>
+</html>

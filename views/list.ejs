@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='//luoxd1.oss-cn-beijing.aliyuncs.com/mock/bootstrap.min.css' />
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <style>
+        .dropdown-menu{display: block;}
+        .dropdown-menu li{cursor: pointer;}
+        .btn-group{margin-bottom: 20px;}
+    </style>
+  </head>
+  <body>
+    <div id="app">
+        <%- include('header'); %>
+        <div class="content-body">
+
+        <!-- Single button -->
+        <div class="btn-group">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" @click="toggleGroup">
+                选择分组 <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" v-show="toggle">
+                <li v-for="(item, index) in group" @click="getList(item.id)">{{item.name}}</li>
+            </ul>
+        </div>
+
+        <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">序号</th>
+                <th scope="col">URL</th>
+                <th scope="col">method</th>
+                <th scope="col">调用次数</th>
+                <th scope="col" style="width: 120px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, index) in list">
+                <th>{{index + 1}}</th>
+                <td>{{item.mock_url}}</td>
+                <td>{{item.mock_method}}</td>
+                <td>{{item.mock_count}}</td>
+                <td>
+                    <a :href="'/?mockId=' + item.mock_id">
+                        <button class="btn btn-outline-secondary btn-sm" type="button" @click="">编辑</button>
+                    </a>
+                </td>
+              </t>
+            </tbody>
+        </table>
+      </div>
+    </div>
+    <script src="//luoxd1.oss-cn-beijing.aliyuncs.com/mock/jquery.min.js"></script>
+    <script src="//luoxd1.oss-cn-beijing.aliyuncs.com/mock/vue.js"></script>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        data: {
+            toggle: false,
+            group: [],
+            list: [], // 数据集合
+        },
+        created: function () {
+            // 初始化获取列表数据
+            this.getGroup()
+        },
+        methods: {
+            /**
+             * 获取分组数据
+             */
+             getGroup: function () {
+                $.ajax({
+                    url: '/interface/getGroup',
+                    type: 'GET',
+                    success: (res) => {
+                        if (res.errorCode == 0) {
+                            this.group = res.data
+                            this.getList(0)
+                        }
+                    }
+                })
+            },
+            /**
+             * 获取列表数据
+             */
+            getList: function (id) {
+                if (this.toggle) this.toggle = false
+                $.ajax({
+                    url: '/interface/getList',
+                    type: 'GET',
+                    data: {
+                        groupId: id,
+                    },
+                    success: (res) => {
+                        if (res.errorCode == 0) {
+                            this.list = res.data
+                        }
+                    }
+                })
+            },
+            toggleGroup() {
+                this.toggle = !this.toggle
+            }
+        },
+      })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='//luoxd1.oss-cn-beijing.aliyuncs.com/mock/bootstrap.min.css' />
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+  </head>
+  <body>
+    <div id="app">
+      <%- include('header'); %>
+      <div class="content-body">
+        <div class="content-body">
+          <div class="mock-add">
+            <div class="input-group mb-3">
+              <input type="text" class="form-control" placeholder="请输入测试URL" aria-label="Recipient's username" aria-describedby="basic-addon2" v-model="mockUrl">
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary ajax-method" type="button" :class="mockMethod == 'get' ? 'active' : ''" @click="mockMethod = 'get'">GET</button>
+                <button class="btn btn-outline-secondary ajax-method" type="button" :class="mockMethod == 'post' ? 'active' : ''" @click="mockMethod = 'post'">POST</button>
+              </div>
+            </div>
+            <p>调用本站接口以/开头，其他接口请填写完整地址</p>
+            <div style="width: 400px;" v-if="mockMethod == 'post'">
+              <div class="input-group mb-3" v-for="(item, index) in postData">
+                <input type="text" class="form-control" aria-label="Recipient's username" aria-describedby="basic-addon2" placeholder="键" v-model="item.key">
+                <input type="text" class="form-control" aria-label="Recipient's username" aria-describedby="basic-addon2" placeholder="值" v-model="item.value">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-secondary ajax-method" type="button" @click="addPostData" v-if="index == postData.length - 1">增加</button>
+                </div>
+              </div>
+            </div>
+            <div v-html="responseData"></div>
+            <div class="mcck-response input-group mb-3" style="margin-top: 20px;">
+              <button class="btn btn-outline-secondary" type="button" @click="callUrl">调用</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <script src="//luoxd1.oss-cn-beijing.aliyuncs.com/mock/jquery.min.js"></script>
+    <script src="//luoxd1.oss-cn-beijing.aliyuncs.com/mock/vue.js"></script>
+    <script>
+      var app = new Vue({
+        el: '#app',
+        data: {
+          mockUrl: '/', // 要mock的url
+          mockMethod: 'get', // 请求类型
+          responseData: '', // 响应数据
+          postData: [ // post请求携带的参数
+            { key: '', value: '' }
+          ],
+        },
+        methods: {
+          addPostData: function () {
+            this.postData.push({ key: '', value: '' })
+          },
+          /**
+           * 调用URL
+           */
+          callUrl: function () {
+            let params = {}
+            this.postData.forEach(item => {
+              params[item.key] = item.value
+            })
+            if (/^\//.test(this.mockUrl)) {
+              $.ajax({
+                url: '/interface/mock' + this.mockUrl,
+                type: this.mockMethod,
+                data: params,
+                dataType: 'json',
+                success: (res) => {
+                  console.log(res)
+                  this.responseData = this.syntaxHighlight(res)
+                }
+              })
+            } else if (/^http(s)?:\/\//.test(this.mockUrl)) {
+              $.ajax({
+                url: '/interface' + this.mockUrl,
+                type: this.mockMethod,
+                data: params,
+                dataType: 'json',
+                success: (res) => {
+                  console.log(res)
+                  this.responseData = this.syntaxHighlight(res)
+                }
+              })
+            } else {
+              alert('URL输入错误')
+            }
+          },
+          output: function(inp) {
+              document.body.appendChild(document.createElement('pre')).innerHTML = inp;
+          },
+          syntaxHighlight: function (msg) {
+            var rep = "~";
+            var jsonStr = JSON.stringify(msg, null, rep)
+            var str = "";
+            for (var i = 0; i < jsonStr.length; i++) {
+                var text2 = jsonStr.charAt(i)
+                if (i > 1) {
+                    var text = jsonStr.charAt(i - 1)
+                    if (rep != text && rep == text2) {
+                        str += "<br/>"
+                    }
+                }
+                str += text2;
+            }
+            jsonStr = "";
+            for (var i = 0; i < str.length; i++) {
+                var text = str.charAt(i);
+                if (rep == text)
+                    jsonStr += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+                else {
+                    jsonStr += text;
+                }
+                if (i == str.length - 2)
+                    jsonStr += "<br/>"
+            }
+            return jsonStr;
+          }
+        },
+      })
+    </script>
+  </body>
+</html>

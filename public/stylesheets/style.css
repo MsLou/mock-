@@ -1,0 +1,22 @@
+body {
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+ul { list-style: none;margin: 0; padding: 0; }
+* { margin: 0; padding: 0; }
+
+a {
+  text-decoration: none;
+  color: #000;
+}
+
+.header { background-color: #fff;box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);height: 70px; }
+.header .header-inner { width: 1200px; margin: auto;display: flex; }
+.header .logo { width: 180px;align-self: center;text-align: center;font-size: 26px;color: #b4ca65; }
+.header .menu { flex: 1;color: #fff; }
+.header .menu ul {  }
+.header .menu ul li { display: inline-block; width: 80px;height: 70px;line-height: 70px; }
+.header .menu ul li a { color: #000;font-size: 14px;display: block;text-align: center; }
+.content-body { width: 1200px; margin: 30px auto; }
+
+.ajax-method.active { background-color: #6c757d; }
